@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening App...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        .fallback-btn {
+            display: none;
+            margin-top: 2rem;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .fallback-btn:hover {
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h1>Opening App...</h1>
+        <p>You'll be redirected shortly</p>
+        <a href="#" id="fallbackBtn" class="fallback-btn" style="display: none;">Continue in Browser</a>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - CUSTOMIZE THESE VALUES
+        // ============================================
+        const CONFIG = {
+            // Your app's custom URL scheme (e.g., "myapp://")
+            appScheme: 'yourapp://',
+            
+            // Deep link path (optional, e.g., "open?id=123")
+            appPath: '',
+            
+            // iOS App Store URL
+            iosAppStoreUrl: 'https://apps.apple.com/app/idYOUR_APP_ID',
+            
+            // Android Play Store URL
+            androidPlayStoreUrl: 'https://play.google.com/store/apps/details?id=com.yourcompany.yourapp',
+            
+            // Fallback website URL (for desktop or if stores fail)
+            websiteUrl: 'https://yourwebsite.com',
+            
+            // Time to wait before redirecting to store (milliseconds)
+            fallbackDelay: 2000
+        };
+        // ============================================
+
+        // Get any query parameters to pass to the app
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryString = urlParams.toString();
+        
+        // Build the deep link URL
+        let deepLink = CONFIG.appScheme + CONFIG.appPath;
+        if (queryString) {
+            deepLink += (CONFIG.appPath ? '&' : '?') + queryString;
+        }
+
+        // Detect platform
+        function getMobileOperatingSystem() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+            if (/android/i.test(userAgent)) {
+                return 'Android';
+            }
+
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'iOS';
+            }
+
+            return 'unknown';
+        }
+
+        // Main function to handle deep linking
+        function openApp() {
+            const platform = getMobileOperatingSystem();
+            const now = Date.now();
+            let redirectUrl;
+
+            if (platform === 'iOS') {
+                redirectUrl = CONFIG.iosAppStoreUrl;
+            } else if (platform === 'Android') {
+                redirectUrl = CONFIG.androidPlayStoreUrl;
+            } else {
+                // Desktop or other platforms - go to website
+                window.location.href = CONFIG.websiteUrl;
+                return;
+            }
+
+            // Try to open the app
+            window.location.href = deepLink;
+
+            // Set up fallback - if app doesn't open, redirect to store
+            setTimeout(function() {
+                // Check if the page is still visible (app didn't open)
+                if (Date.now() - now < CONFIG.fallbackDelay + 100) {
+                    window.location.href = redirectUrl;
+                }
+            }, CONFIG.fallbackDelay);
+
+            // Show fallback button after a delay
+            setTimeout(function() {
+                const fallbackBtn = document.getElementById('fallbackBtn');
+                fallbackBtn.style.display = 'inline-block';
+                fallbackBtn.href = redirectUrl;
+                fallbackBtn.textContent = platform === 'iOS' ? 'Open App Store' : 'Open Play Store';
+            }, CONFIG.fallbackDelay + 500);
+
+            // Handle page visibility change (when user returns from another app)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    // User came back - app probably didn't open
+                    // The timeout will handle the redirect
+                }
+            });
+        }
+
+        // Run on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', openApp);
+        } else {
+            openApp();
+        }
+    </script>
+</body>
+</html>
