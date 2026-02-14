@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.yourcompany.yourapp",
+      "package_name": "com.renxo.realeasyuserpwa",
       "sha256_cert_fingerprints": [
-        "YOUR_SHA256_FINGERPRINT_HERE"
+        "64:82:65:BA:97:D5:82:2F:8E:63:09:FF:33:74:52:6C:21:44:28:8D:71:B3:C7:54:4B:2C:2C:E1:43:D9:5B:57"
       ]
     }
   }
